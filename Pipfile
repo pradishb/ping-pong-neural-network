@@ -9,6 +9,7 @@ pylint = "*"
 
 [packages]
 pygame = "*"
+numpy = "*"
 
 [requires]
 python_version = "3.6"
