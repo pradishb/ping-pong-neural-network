@@ -24,9 +24,3 @@ class NeuralNetwork:
         self.output = sigmoid(np.dot(self.layer1, self.weights2))
         # print(self.layer1)
         return self.output
-
-
-if __name__ == "__main__":
-    for i in range(200):
-        nn = NeuralNetwork(12, 2)
-        print(nn.feedforward([0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0]).round())

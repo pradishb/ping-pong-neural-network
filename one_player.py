@@ -1,7 +1,7 @@
 import sys
 import pygame
 import numpy as np
-from abc import abstractmethod
+from neural_network import NeuralNetwork
 
 BLOCK = 10
 
@@ -40,14 +40,17 @@ class Ball(Block):
 
 
 class Player(Block):
-    def __init__(self):
+    def __init__(self, width):
         Block.__init__(self, (255, 0, 0), 2, 1, 7, 0)
+        self.screen_width = width
 
-    def get_inputs(self, left, right):
+    def set_inputs(self, left, right):
         if left:
-            self.x -= 1
+            if self.x > 0:
+                self.x -= 1
         elif right:
-            self.y += 1
+            if self.x < self.screen_width - self.width:
+                self.x += 1
 
     def update(self):
         self.move()
@@ -66,15 +69,19 @@ class Game:
         self.screen = pygame.display.set_mode(self.size)
 
         self.ball = Ball()
-        self.p1 = Player()
+        self.p1 = Player(self.width)
         self.player_sprites = [self.p1]
         self.allsprites = pygame.sprite.RenderPlain(
             (self.p1, self.ball))
 
         self.fitness = 0
+        self.highest_fitness = 0
 
     def reset(self):
-        print(self.fitness)
+        print("Fitness: %i" % self.fitness)
+        if(self.fitness > self.highest_fitness):
+            self.highest_fitness = self.fitness
+        print("Highest Fitness: %i" % self.highest_fitness)
         self.fitness = 0
         self.p1.x = 7
         self.p1.y = 0
@@ -82,20 +89,29 @@ class Game:
         self.ball.y = 10
 
     def run(self):
-        while 1:
-            dt = self.clock.tick(5)
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    sys.exit()
+        for i in range(200):
+            print("Offspring %i:" % i)
+            nn = NeuralNetwork(12, 2)
+            while 1:
+                dt = self.clock.tick(15)
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        sys.exit()
 
-            print(bin_array(self.ball.x * 256 + self.ball.y * 16 + self.p1.x, 12))
+                neural_input = bin_array(self.ball.x * 256 +
+                                         self.ball.y * 16 + self.p1.x, 12)
+                neural_output = nn.feedforward(neural_input).round()
+                print(neural_output)
+                self.p1.set_inputs(neural_output[0], neural_output[1])
 
-            self.screen.fill(self.black)
-            self.detect_collision()
-            self.allsprites.update()
-            self.allsprites.draw(self.screen)
-            pygame.display.flip()
-            self.fitness += 1
+                if(self.detect_collision()):
+                    break
+                self.allsprites.update()
+
+                self.screen.fill(self.black)
+                self.allsprites.draw(self.screen)
+                pygame.display.flip()
+                self.fitness += 1
 
     def detect_collision(self):
         if self.ball.x >= self.width - 1:
@@ -106,6 +122,7 @@ class Game:
             self.ball.xspeed *= -1
         if self.ball.y == 0:
             self.reset()
+            return True
 
         for player in self.player_sprites:
             for i in range(player.width):
@@ -113,6 +130,7 @@ class Game:
                 future_y = self.ball.y + self.ball.yspeed
                 if future_x == player.x + i and future_y == player.y:
                     self.ball.yspeed *= -1
+        return False
 
 
 if __name__ == '__main__':
