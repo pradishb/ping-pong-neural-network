@@ -1,71 +1,94 @@
 import sys
 import pygame
-import pygame
+from abc import abstractmethod
 
 BLOCK = 10
 
 
 class Block(pygame.sprite.Sprite):
-    # Constructor. Pass in the color of the block,
-    # and its x and y position
     def __init__(self, color, width, height, x, y):
-        # Call the parent class (Sprite) constructor
         pygame.sprite.Sprite.__init__(self)
-
-        # Create an image of the block, and fill it with a color.
-        # This could also be an image loaded from the disk.
-        self.image = pygame.Surface([width, height])
+        self.image = pygame.Surface([width * BLOCK, height * BLOCK])
         self.image.fill(color)
+        self.width = width
+        self.height = height
         self.x = x
         self.y = y
-
-        # Fetch the rectangle object that has the dimensions of the image
-        # Update the position of this object by setting the values of rect.x and rect.y
         self.rect = self.image.get_rect()
 
+    @abstractmethod
+    def move(self):
+        pass
+
     def update(self):
+        self.move()
         self.rect.x = BLOCK * self.x
         self.rect.y = BLOCK * self.y
+
+# class Player(Block):
+#     def __init__(self):
+#         super()
+
+
+class Ball(Block):
+    def __init__(self):
+        Block.__init__(self, (255, 255, 255), 1, 1, 10, 10)
+        self.xspeed = -1
+        self.yspeed = -1
+
+    def move(self):
+        self.x += self.xspeed
+        self.y += self.yspeed
 
 
 class Game:
     def __init__(self):
-
+        pygame.init()
         self.width = 21
         self.height = 21
-        pygame.init()
+        self.clock = pygame.time.Clock()
 
-        size = self.width * BLOCK, self.height * BLOCK
+        self.size = self.width * BLOCK, self.height * BLOCK
         self.black = 0, 0, 0
 
-        self.screen = pygame.display.set_mode(size)
+        self.screen = pygame.display.set_mode(self.size)
 
-        self.ball = Block((255, 255, 255), BLOCK, BLOCK, 10, 10)
-        self.p1 = Block((255, 0, 0), 3 * BLOCK, BLOCK, 9, 0)
-        self.p2 = Block((255, 0, 0), 3 * BLOCK, BLOCK, 9, 20)
+        self.ball = Ball()
+        self.p1 = Block((255, 0, 0), 3, 1, 0, 0)
+        self.p2 = Block((255, 0, 0), 3, 1, 14, 20)
+        self.player_sprites = [self.p1, self.p2]
         self.allsprites = pygame.sprite.RenderPlain(
             (self.p1, self.p2, self.ball))
 
     def run(self):
         while 1:
+            dt = self.clock.tick(30)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit()
 
             self.screen.fill(self.black)
+            self.detect_collision()
             self.allsprites.update()
             self.allsprites.draw(self.screen)
             pygame.display.flip()
 
+    def detect_collision(self):
+        if self.ball.x >= self.width - 1:
+            self.ball.xspeed *= -1
+        if self.ball.y >= self.height - 1:
+            self.ball.yspeed *= -1
+        if self.ball.x == 0:
+            self.ball.xspeed *= -1
+        if self.ball.y == 0:
+            self.ball.yspeed *= -1
 
-class Player:
-    def __init__(self):
-        self.width = 4
-
-
-class Ball:
-    def __init__(self):
-        self.width = 4
+        for player in self.player_sprites:
+            for i in range(player.width):
+                future_x = self.ball.x + self.ball.xspeed
+                future_y = self.ball.y + self.ball.yspeed
+                if future_x == player.x + i and future_y == player.y:
+                    self.ball.yspeed *= -1
 
 
 if __name__ == '__main__':
