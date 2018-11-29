@@ -19,10 +19,11 @@ class GeneticAlgorithm:
         self.num_input = num_input
         self.num_output = num_output
 
-        self.sol_per_pop = 50
-        self.num_parents = 10
-        self.num_offspring = 15
-        self.num_random_pop = 25
+        self.sol_per_pop = 2
+        self.num_parents = 1
+        self.num_offspring = 1
+        self.num_random_pop = 0
+        self.num_generations = 1
 
         self.num_weights = num_input * num_input + num_input * num_output
 
@@ -36,8 +37,6 @@ class GeneticAlgorithm:
             self.population = np.random.uniform(
                 low=-4.0, high=4.0, size=self.pop_size)
             self.fitness_graph = np.array([])
-
-        self.num_generations = 10
 
     def fitness(self):
         fitness_array = np.zeros(self.sol_per_pop)
@@ -79,12 +78,14 @@ class GeneticAlgorithm:
         return offspring
 
     def mutation(self, offspring_crossover):
-        # Mutation changes a single gene in each offspring randomly.
+        # Mutation changes a single random gene in each offspring randomly.
         for idx in range(offspring_crossover.shape[0]):
             # The random value to be added to the gene.
             random_value = np.random.uniform(-4.0, 4.0, 1)
+            rand_gene = np.random.randint(
+                offspring_crossover.shape[1], size=1)[0]
             offspring_crossover[idx,
-                                4] = offspring_crossover[idx, 4] + random_value
+                                rand_gene] = random_value
         return offspring_crossover
 
     def train(self):
@@ -149,4 +150,4 @@ if __name__ == '__main__':
     ga = GeneticAlgorithm(12, 2, args[0], args[1], args[2])
     ga.train()
     plt.plot(ga.get_fitness_graph())
-    plt.show()
+    # plt.show()
