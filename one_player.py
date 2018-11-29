@@ -1,6 +1,7 @@
 import sys
 import pygame
 import numpy as np
+import random
 from neural_network import NeuralNetwork
 
 BLOCK = 10
@@ -30,8 +31,14 @@ class Block(pygame.sprite.Sprite):
 class Ball(Block):
     def __init__(self):
         Block.__init__(self, (255, 255, 255), 1, 1, 10, 10)
-        self.xspeed = -1
-        self.yspeed = 1
+        self.xspeed = random.choice([-1, 1])
+        self.yspeed = random.choice([-1, 1])
+
+    def reset(self):
+        self.x = 10
+        self.y = 10
+        self.xspeed = random.choice([-1, 1])
+        self.yspeed = random.choice([-1, 1])
 
     def update(self):
         self.x += self.xspeed
@@ -51,6 +58,10 @@ class Player(Block):
         elif right:
             if self.x < self.screen_width - self.width:
                 self.x += 1
+
+    def reset(self):
+        self.x = 7
+        self.y = 0
 
     def update(self):
         self.move()
@@ -84,10 +95,8 @@ class Game:
         #     self.highest_fitness = self.fitness
         # print("Highest Fitness: %i" % self.highest_fitness)
         self.fitness = 0
-        self.p1.x = 7
-        self.p1.y = 0
-        self.ball.x = 10
-        self.ball.y = 10
+        self.p1.reset()
+        self.ball.reset()
 
     def find_fitness(self, weights):
         self.reset()

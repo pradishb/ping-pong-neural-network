@@ -14,7 +14,8 @@ class GeneticAlgorithm:
         self.num_output = num_output
 
         self.sol_per_pop = 50
-        self.num_parents = 2
+        self.num_parents = 15
+        self.num_random_pop = 15
 
         self.num_weights = num_input * num_input + num_input * num_output
 
@@ -23,13 +24,13 @@ class GeneticAlgorithm:
         self.population = np.random.uniform(
             low=-4.0, high=4.0, size=self.pop_size)
 
-        self.num_generations = 100
+        self.num_generations = 300
 
     def fitness(self):
         fitness_array = np.zeros(self.sol_per_pop)
         i = 0
         for weights in self.population:
-            fitness_array[i] = self.my_game.find_fitness_gui(weights)
+            fitness_array[i] = self.my_game.find_fitness(weights)
             i += 1
 
         return fitness_array
@@ -83,14 +84,21 @@ class GeneticAlgorithm:
             parents = self.select_mating_pool(fitness)
 
             offspring_crossover = self.crossover(
-                parents, (self.sol_per_pop - self.num_parents, self.num_weights))
+                parents, (self.sol_per_pop - self.num_parents - self.num_random_pop, self.num_weights))
 
             # Adding some variations to the offsrping using mutation.
             offspring_mutation = self.mutation(offspring_crossover)
 
+            # Some random new population
+            random_population = np.random.uniform(
+                low=-4.0, high=4.0, size=(self.num_random_pop, self.num_weights))
+
             # Creating the new population based on the parents and offspring.
-            self.population[0:parents.shape[0], :] = parents
-            self.population[parents.shape[0]:, :] = offspring_mutation
+            index1 = self.num_parents
+            index2 = self.num_parents + self.num_random_pop
+            self.population[0:index1, :] = parents
+            self.population[index1:index2, :] = random_population
+            self.population[index2:, :] = offspring_mutation
 
 
 if __name__ == '__main__':
