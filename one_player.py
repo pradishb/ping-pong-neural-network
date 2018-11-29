@@ -52,10 +52,10 @@ class Player(Block):
         self.screen_width = width
 
     def set_inputs(self, left, right):
-        if left:
+        if left and not right:
             if self.x > 0:
                 self.x -= 1
-        elif right:
+        elif right and not left:
             if self.x < self.screen_width - self.width:
                 self.x += 1
 
