@@ -15,11 +15,11 @@ class GeneticAlgorithm:
         self.num_input = num_input
         self.num_output = num_output
 
-        self.sol_per_pop = 30
-        self.num_parents = 10
-        self.num_offspring = 10
+        self.sol_per_pop = 50
+        self.num_parents = 20
+        self.num_offspring = 20
         self.num_random_pop = 10
-        self.num_generations = 100
+        self.num_generations = 1000
 
         self.num_weights = num_input * num_input + num_input * num_output
 
@@ -31,7 +31,7 @@ class GeneticAlgorithm:
             self.fitness_graph = np.fromfile(self.save_file + '_graph')
         except FileNotFoundError:
             self.population = np.random.uniform(
-                low=-16.0, high=16.0, size=self.pop_size)
+                low=-4.0, high=4.0, size=self.pop_size)
             self.fitness_graph = np.array([])
 
     def fitness(self):
@@ -44,6 +44,9 @@ class GeneticAlgorithm:
 
     def get_fitness_graph(self):
         return self.fitness_graph
+
+    def print_population(self):
+        print(self.population)
 
     def select_mating_pool(self, fitness):
         # Selecting the best individuals in the current generation as parents for producing the offspring of the next generation.
@@ -58,16 +61,20 @@ class GeneticAlgorithm:
     def crossover(self, parents, offspring_size):
         offspring = np.empty(offspring_size)
         # The point at which crossover takes place between two parents. Usually it is at the center.
-        crossover_point = np.uint8(offspring_size[1]/2)
+        # center crossover point
+        # crossover_point = np.uint8(offspring_size[1]/2)
+        # random crossover point
+        crossover_point = np.random.randint(
+            offspring_size[1] - 2, size=1)[0] + 1
 
         for k in range(offspring_size[0]):
             # Index of the first parent to mate.
-            parent1_idx = k % parents.shape[0]
+            parent1_idx = np.random.randint(parents.shape[0], size=1)[0]
             # Index of the second parent to mate.
-            parent2_idx = (k+1) % parents.shape[0]
+            parent2_idx = np.random.randint(parents.shape[0], size=1)[0]
             # The new offspring will have its first half of its genes taken from the first parent.
             offspring[k, 0:crossover_point] = parents[parent1_idx,
-                                                      0:crossover_point]
+                                                      0: crossover_point]
             # The new offspring will have its second half of its genes taken from the second parent.
             offspring[k, crossover_point:] = parents[parent2_idx,
                                                      crossover_point:]
@@ -107,7 +114,7 @@ class GeneticAlgorithm:
 
             # Some random new population
             random_population = np.random.uniform(
-                low=-16.0, high=16.0, size=(self.num_random_pop, self.num_weights))
+                low=-4.0, high=4.0, size=(self.num_random_pop, self.num_weights))
 
             # Creating the new population based on the parents and offspring.
             index1 = self.num_parents
@@ -123,8 +130,11 @@ def main(argv):
     gui = False
     data = ''
     fps = 15
+    print_data = False
+    print_graph = False
     try:
-        opts, args = getopt.getopt(argv, "hgd:f:", ["gui", "data=", "fps="])
+        opts, args = getopt.getopt(
+            argv, "hpgd:f:", ["graph", "print", "gui", "data=", "fps="])
     except getopt.GetoptError:
         print('error in options. try -h')
         sys.exit(2)
@@ -132,18 +142,28 @@ def main(argv):
         if opt == '-h':
             print('Not set')
             sys.exit()
+        elif opt in ("-p", "--print"):
+            print_data = True
+        elif opt in ("-gr", "--graph"):
+            print_graph = True
         elif opt in ("-g", "--gui"):
             gui = True
         elif opt in ("-d", "--data"):
             data = arg
         elif opt in ("-f", "--fps"):
             fps = arg
-    return [gui, data, fps]
+    return [gui, data, fps, print_data, print_graph]
 
 
 if __name__ == '__main__':
     args = main(sys.argv[1:])
     ga = GeneticAlgorithm(3, 2, args[0], args[1], args[2])
-    ga.train()
-    plt.plot(ga.get_fitness_graph())
-    plt.show()
+    if args[3]:
+        ga.print_population()
+    elif args[4]:
+        plt.plot(ga.get_fitness_graph())
+        plt.show()
+    else:
+        ga.train()
+        plt.plot(ga.get_fitness_graph())
+        plt.show()

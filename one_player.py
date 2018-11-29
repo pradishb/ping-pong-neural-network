@@ -132,5 +132,7 @@ class Game:
                 future_y = self.ball.y + self.ball.yspeed
                 if future_x == player.x + i and future_y == player.y:
                     self.fitness += 1
+                    if self.fitness > 1000:
+                        return True
                     self.ball.yspeed *= -1
         return False
