@@ -98,40 +98,28 @@ class Game:
         self.p1.reset()
         self.ball.reset()
 
-    def find_fitness(self, weights):
+    def find_fitness(self, weights, gui):
         self.reset()
         while 1:
-            neural_input = bin_array(self.ball.x * 256 +
-                                     self.ball.y * 16 + self.p1.x, 12)
-            neural_output = self.nn.feedforward(neural_input, weights).round()
-            # print(neural_output)
-            self.p1.set_inputs(neural_output[0], neural_output[1])
-
-            if(self.detect_collision()):
-                return self.fitness
-            self.allsprites.update()
-
-    def find_fitness_gui(self, weights):
-        self.reset()
-        while 1:
-            dt = self.clock.tick(30)
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    sys.exit()
+            if gui:
+                dt = self.clock.tick(30)
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        sys.exit()
 
             neural_input = bin_array(self.ball.x * 256 +
                                      self.ball.y * 16 + self.p1.x, 12)
             neural_output = self.nn.feedforward(neural_input, weights).round()
-            # print(neural_output)
             self.p1.set_inputs(neural_output[0], neural_output[1])
 
             if(self.detect_collision()):
                 return self.fitness
-            self.allsprites.update()
 
-            self.screen.fill(self.black)
-            self.allsprites.draw(self.screen)
-            pygame.display.flip()
+            self.allsprites.update()
+            if gui:
+                self.screen.fill(self.black)
+                self.allsprites.draw(self.screen)
+                pygame.display.flip()
 
     def detect_collision(self):
         if self.ball.x >= self.width - 1:

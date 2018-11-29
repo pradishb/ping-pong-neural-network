@@ -1,5 +1,6 @@
 import numpy as np
-from one_player import Game
+import sys
+import getopt
 
 
 def sigmoid(x):
@@ -7,7 +8,10 @@ def sigmoid(x):
 
 
 class GeneticAlgorithm:
-    def __init__(self, num_input, num_output):
+    def __init__(self, num_input, num_output, gui, save_file):
+        from one_player import Game
+        self.gui = gui
+        self.save_file = save_file
         self.my_game = Game()
 
         self.num_input = num_input
@@ -21,16 +25,15 @@ class GeneticAlgorithm:
 
         self.pop_size = (self.sol_per_pop, self.num_weights)
 
-        self.population = np.random.uniform(
-            low=-4.0, high=4.0, size=self.pop_size)
+        self.population = np.fromfile(self.save_file).reshape(self.pop_size)
 
-        self.num_generations = 10
+        self.num_generations = 30
 
     def fitness(self):
         fitness_array = np.zeros(self.sol_per_pop)
         i = 0
         for weights in self.population:
-            fitness_array[i] = self.my_game.find_fitness(weights)
+            fitness_array[i] = self.my_game.find_fitness(weights, self.gui)
             i += 1
 
         return fitness_array
@@ -99,10 +102,32 @@ class GeneticAlgorithm:
             self.population[0:index1, :] = parents
             self.population[index1:index2, :] = random_population
             self.population[index2:, :] = offspring_mutation
-            self.population.tofile('data.txt')
-            self.population = np.fromfile('data.txt').reshape(self.pop_size)
+            self.population.tofile(self.save_file)
+
+
+def main(argv):
+    gui = False
+    data = ''
+    try:
+        opts, args = getopt.getopt(argv, "hgd:", ["gui", "data="])
+    except getopt.GetoptError:
+        print('error in options. try -h')
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == '-h':
+            print('Not set')
+            sys.exit()
+        elif opt in ("-g", "--gui"):
+            gui = True
+        elif opt in ("-d", "--data"):
+            if arg == '':
+                print('Please specify data file --data')
+                sys.exit()
+            data = arg
+    return [gui, data]
 
 
 if __name__ == '__main__':
-    ga = GeneticAlgorithm(12, 2)
+    args = main(sys.argv[1:])
+    ga = GeneticAlgorithm(12, 2, args[0], args[1])
     ga.train()
