@@ -24,7 +24,7 @@ class GeneticAlgorithm:
         self.population = np.random.uniform(
             low=-4.0, high=4.0, size=self.pop_size)
 
-        self.num_generations = 300
+        self.num_generations = 10
 
     def fitness(self):
         fitness_array = np.zeros(self.sol_per_pop)
@@ -67,7 +67,7 @@ class GeneticAlgorithm:
         # Mutation changes a single gene in each offspring randomly.
         for idx in range(offspring_crossover.shape[0]):
             # The random value to be added to the gene.
-            random_value = np.random.uniform(-1.0, 1.0, 1)
+            random_value = np.random.uniform(-4.0, 4.0, 1)
             offspring_crossover[idx,
                                 4] = offspring_crossover[idx, 4] + random_value
         return offspring_crossover
@@ -99,6 +99,8 @@ class GeneticAlgorithm:
             self.population[0:index1, :] = parents
             self.population[index1:index2, :] = random_population
             self.population[index2:, :] = offspring_mutation
+            self.population.tofile('data.txt')
+            self.population = np.fromfile('data.txt').reshape(self.pop_size)
 
 
 if __name__ == '__main__':
