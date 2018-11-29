@@ -10,6 +10,8 @@ pylint = "*"
 [packages]
 pygame = "*"
 numpy = "*"
+matplotlib = "*"
+pylint = "*"
 
 [requires]
 python_version = "3.6"

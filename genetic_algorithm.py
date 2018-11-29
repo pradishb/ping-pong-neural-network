@@ -1,6 +1,7 @@
 import numpy as np
 import sys
 import getopt
+import matplotlib.pyplot as plt
 
 
 def sigmoid(x):
@@ -8,26 +9,35 @@ def sigmoid(x):
 
 
 class GeneticAlgorithm:
-    def __init__(self, num_input, num_output, gui, save_file):
+    def __init__(self, num_input, num_output, gui, save_file, fps):
         from one_player import Game
+
         self.gui = gui
         self.save_file = save_file
-        self.my_game = Game()
+        self.my_game = Game(fps)
 
         self.num_input = num_input
         self.num_output = num_output
 
         self.sol_per_pop = 50
-        self.num_parents = 15
-        self.num_random_pop = 15
+        self.num_parents = 10
+        self.num_offspring = 15
+        self.num_random_pop = 25
 
         self.num_weights = num_input * num_input + num_input * num_output
 
         self.pop_size = (self.sol_per_pop, self.num_weights)
 
-        self.population = np.fromfile(self.save_file).reshape(self.pop_size)
+        try:
+            self.population = np.fromfile(
+                self.save_file).reshape(self.pop_size)
+            self.fitness_graph = np.fromfile(self.save_file + '_graph')
+        except FileNotFoundError:
+            self.population = np.random.uniform(
+                low=-4.0, high=4.0, size=self.pop_size)
+            self.fitness_graph = np.array([])
 
-        self.num_generations = 30
+        self.num_generations = 10
 
     def fitness(self):
         fitness_array = np.zeros(self.sol_per_pop)
@@ -35,8 +45,10 @@ class GeneticAlgorithm:
         for weights in self.population:
             fitness_array[i] = self.my_game.find_fitness(weights, self.gui)
             i += 1
-
         return fitness_array
+
+    def get_fitness_graph(self):
+        return self.fitness_graph
 
     def select_mating_pool(self, fitness):
         # Selecting the best individuals in the current generation as parents for producing the offspring of the next generation.
@@ -76,16 +88,20 @@ class GeneticAlgorithm:
         return offspring_crossover
 
     def train(self):
-        # Generating next generation using crossover.
+        # Training the AI using genetic algorithm
 
         for i in range(self.num_generations):
-
+            # Calculating fitness
             fitness = self.fitness()
-            print(fitness.astype(int), "Max Fitness: %i" %
-                  int(np.max(fitness)))
+            max_fitness = int(np.max(fitness))
+            print(fitness.astype(int), "Max Fitness: %i" % max_fitness)
+            self.fitness_graph = np.concatenate(
+                (self.fitness_graph, [max_fitness]))
 
+            # Selecting best parents
             parents = self.select_mating_pool(fitness)
 
+            # Crossover
             offspring_crossover = self.crossover(
                 parents, (self.sol_per_pop - self.num_parents - self.num_random_pop, self.num_weights))
 
@@ -98,18 +114,20 @@ class GeneticAlgorithm:
 
             # Creating the new population based on the parents and offspring.
             index1 = self.num_parents
-            index2 = self.num_parents + self.num_random_pop
+            index2 = self.num_parents + self.num_offspring
             self.population[0:index1, :] = parents
-            self.population[index1:index2, :] = random_population
-            self.population[index2:, :] = offspring_mutation
-            self.population.tofile(self.save_file)
+            self.population[index1:index2, :] = offspring_mutation
+            self.population[index2:, :] = random_population
+        self.population.tofile(self.save_file)
+        self.fitness_graph.tofile(self.save_file + '_graph')
 
 
 def main(argv):
     gui = False
     data = ''
+    fps = 60
     try:
-        opts, args = getopt.getopt(argv, "hgd:", ["gui", "data="])
+        opts, args = getopt.getopt(argv, "hgd:f:", ["gui", "data=", "fps="])
     except getopt.GetoptError:
         print('error in options. try -h')
         sys.exit(2)
@@ -120,14 +138,15 @@ def main(argv):
         elif opt in ("-g", "--gui"):
             gui = True
         elif opt in ("-d", "--data"):
-            if arg == '':
-                print('Please specify data file --data')
-                sys.exit()
             data = arg
-    return [gui, data]
+        elif opt in ("-f", "--fps"):
+            fps = arg
+    return [gui, data, fps]
 
 
 if __name__ == '__main__':
     args = main(sys.argv[1:])
-    ga = GeneticAlgorithm(12, 2, args[0], args[1])
+    ga = GeneticAlgorithm(12, 2, args[0], args[1], args[2])
     ga.train()
+    plt.plot(ga.get_fitness_graph())
+    plt.show()

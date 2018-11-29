@@ -31,14 +31,14 @@ class Block(pygame.sprite.Sprite):
 class Ball(Block):
     def __init__(self):
         Block.__init__(self, (255, 255, 255), 1, 1, 10, 10)
-        self.xspeed = random.choice([-1, 1])
-        self.yspeed = random.choice([-1, 1])
+        self.xspeed = -1
+        self.yspeed = -1
 
     def reset(self):
         self.x = 10
         self.y = 10
-        self.xspeed = random.choice([-1, 1])
-        self.yspeed = random.choice([-1, 1])
+        self.xspeed = -1
+        self.yspeed = -1
 
     def update(self):
         self.x += self.xspeed
@@ -68,12 +68,13 @@ class Player(Block):
 
 
 class Game:
-    def __init__(self):
+    def __init__(self, fps):
         pygame.init()
         self.nn = NeuralNetwork(12, 2)
         self.width = 16
         self.height = 16
         self.clock = pygame.time.Clock()
+        self.fps = int(fps)
 
         self.size = self.width * BLOCK, self.height * BLOCK
         self.black = 0, 0, 0
@@ -87,13 +88,8 @@ class Game:
             (self.p1, self.ball))
 
         self.fitness = 0
-        # self.highest_fitness = 0
 
     def reset(self):
-        # print("Fitness: %i" % self.fitness)
-        # if(self.fitness > self.highest_fitness):
-        #     self.highest_fitness = self.fitness
-        # print("Highest Fitness: %i" % self.highest_fitness)
         self.fitness = 0
         self.p1.reset()
         self.ball.reset()
@@ -102,7 +98,7 @@ class Game:
         self.reset()
         while 1:
             if gui:
-                dt = self.clock.tick(30)
+                dt = self.clock.tick(self.fps)
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         sys.exit()
