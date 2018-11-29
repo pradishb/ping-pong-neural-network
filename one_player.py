@@ -70,7 +70,7 @@ class Player(Block):
 class Game:
     def __init__(self, fps):
         pygame.init()
-        self.nn = NeuralNetwork(12, 2)
+        self.nn = NeuralNetwork(3, 2)
         self.width = 16
         self.height = 16
         self.clock = pygame.time.Clock()
@@ -103,8 +103,7 @@ class Game:
                     if event.type == pygame.QUIT:
                         sys.exit()
 
-            neural_input = bin_array(self.ball.x * 256 +
-                                     self.ball.y * 16 + self.p1.x, 12)
+            neural_input = [self.ball.x, self.ball.y, self.p1.x]
             neural_output = self.nn.feedforward(neural_input, weights).round()
             self.p1.set_inputs(neural_output[0], neural_output[1])
 

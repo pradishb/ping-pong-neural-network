@@ -19,11 +19,11 @@ class GeneticAlgorithm:
         self.num_input = num_input
         self.num_output = num_output
 
-        self.sol_per_pop = 2
-        self.num_parents = 1
-        self.num_offspring = 1
-        self.num_random_pop = 0
-        self.num_generations = 1
+        self.sol_per_pop = 30
+        self.num_parents = 10
+        self.num_offspring = 10
+        self.num_random_pop = 10
+        self.num_generations = 100
 
         self.num_weights = num_input * num_input + num_input * num_output
 
@@ -35,7 +35,7 @@ class GeneticAlgorithm:
             self.fitness_graph = np.fromfile(self.save_file + '_graph')
         except FileNotFoundError:
             self.population = np.random.uniform(
-                low=-4.0, high=4.0, size=self.pop_size)
+                low=-16.0, high=16.0, size=self.pop_size)
             self.fitness_graph = np.array([])
 
     def fitness(self):
@@ -81,11 +81,11 @@ class GeneticAlgorithm:
         # Mutation changes a single random gene in each offspring randomly.
         for idx in range(offspring_crossover.shape[0]):
             # The random value to be added to the gene.
-            random_value = np.random.uniform(-4.0, 4.0, 1)
+            random_value = np.random.uniform(-1.0, 1.0, 1)
             rand_gene = np.random.randint(
                 offspring_crossover.shape[1], size=1)[0]
-            offspring_crossover[idx,
-                                rand_gene] = random_value
+            offspring_crossover[idx, rand_gene] = offspring_crossover[idx,
+                                                                      rand_gene] + random_value
         return offspring_crossover
 
     def train(self):
@@ -111,7 +111,7 @@ class GeneticAlgorithm:
 
             # Some random new population
             random_population = np.random.uniform(
-                low=-4.0, high=4.0, size=(self.num_random_pop, self.num_weights))
+                low=-16.0, high=16.0, size=(self.num_random_pop, self.num_weights))
 
             # Creating the new population based on the parents and offspring.
             index1 = self.num_parents
@@ -126,7 +126,7 @@ class GeneticAlgorithm:
 def main(argv):
     gui = False
     data = ''
-    fps = 60
+    fps = 15
     try:
         opts, args = getopt.getopt(argv, "hgd:f:", ["gui", "data=", "fps="])
     except getopt.GetoptError:
@@ -147,7 +147,7 @@ def main(argv):
 
 if __name__ == '__main__':
     args = main(sys.argv[1:])
-    ga = GeneticAlgorithm(12, 2, args[0], args[1], args[2])
+    ga = GeneticAlgorithm(3, 2, args[0], args[1], args[2])
     ga.train()
     plt.plot(ga.get_fitness_graph())
-    # plt.show()
+    plt.show()
