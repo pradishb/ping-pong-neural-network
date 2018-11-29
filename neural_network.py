@@ -10,17 +10,16 @@ def sigmoid_derivative(x):
 
 
 class NeuralNetwork:
-    def __init__(self, input_size, output_size):
-        self.weights1 = np.random.uniform(
-            low=-4.0, high=4.0, size=(input_size, input_size))
+    def __init__(self, num_input, num_output):
+        self.num_input = num_input
+        self.num_output = num_output
 
-        self.weights2 = np.random.uniform(
-            low=-4.0, high=4.0, size=(input_size, output_size))
-        # print(self.weights2)
-        self.output = np.zeros(output_size)
+    def feedforward(self, input_array, weights):
+        weights1 = weights[:self.num_input *
+                           self.num_input].reshape(self.num_input, self.num_input)
+        weights2 = weights[self.num_input *
+                           self.num_input:].reshape(self.num_input, self.num_output)
 
-    def feedforward(self, input_array):
-        self.layer1 = sigmoid(np.dot(input_array, self.weights1))
-        self.output = sigmoid(np.dot(self.layer1, self.weights2))
-        # print(self.layer1)
+        self.layer1 = sigmoid(np.dot(input_array, weights1))
+        self.output = sigmoid(np.dot(self.layer1, weights2))
         return self.output

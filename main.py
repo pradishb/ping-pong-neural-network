@@ -44,8 +44,8 @@ class Ball(Block):
 class Game:
     def __init__(self):
         pygame.init()
-        self.width = 21
-        self.height = 21
+        self.width = 16
+        self.height = 16
         self.clock = pygame.time.Clock()
 
         self.size = self.width * BLOCK, self.height * BLOCK
@@ -54,18 +54,20 @@ class Game:
         self.screen = pygame.display.set_mode(self.size)
 
         self.ball = Ball()
-        self.p1 = Block((255, 0, 0), 3, 1, 0, 0)
-        self.p2 = Block((255, 0, 0), 3, 1, 14, 20)
+        self.p1 = Block((255, 0, 0), 2, 1, 7, 0)
+        self.p2 = Block((255, 0, 0), 2, 1, 14, self.height-1)
         self.player_sprites = [self.p1, self.p2]
         self.allsprites = pygame.sprite.RenderPlain(
             (self.p1, self.p2, self.ball))
 
     def run(self):
         while 1:
-            dt = self.clock.tick(30)
+            dt = self.clock.tick(5)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit()
+
+            print(self.p1.x)
 
             self.screen.fill(self.black)
             self.detect_collision()
