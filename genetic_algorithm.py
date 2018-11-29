@@ -4,10 +4,6 @@ import getopt
 import matplotlib.pyplot as plt
 
 
-def sigmoid(x):
-    return 1.0 / (1 + np.exp(-x))
-
-
 class GeneticAlgorithm:
     def __init__(self, num_input, num_output, gui, save_file, fps):
         from one_player import Game
